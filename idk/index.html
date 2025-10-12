@@ -1,1 +1,655 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Merp</title>
+    <style>
+        :root {
+            --bg-color: #1a1a1a;
+            --primary-color: #2a2a2e;
+            --accent-color: #8a63d2;
+            --text-color: #f0f0f0;
+            --font-family: 'Arial', sans-serif;
+        }
 
+        body {
+            margin: 0;
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            font-family: var(--font-family);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            overflow: hidden;
+        }
+
+        #game-container {
+            position: relative;
+            width: 100%;
+            max-width: 800px;
+            height: 100%;
+            max-height: 600px;
+            box-shadow: 0 0 20px rgba(0,0,0,0.5);
+        }
+
+        #game-canvas {
+            width: 100%;
+            height: 100%;
+            display: block;
+            background-color: #333;
+        }
+
+        #ui-container {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none; /* Allow clicks to pass through to canvas unless on a UI element */
+        }
+
+        .screen {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(26, 26, 26, 0.85);
+            backdrop-filter: blur(5px);
+            display: none;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            gap: 20px;
+            pointer-events: all;
+        }
+
+        .screen.active {
+            display: flex;
+        }
+
+        .logo {
+            width: 60%;
+            max-width: 300px;
+            margin-bottom: 20px;
+        }
+
+        .menu-buttons {
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+        }
+
+        .ui-button {
+            background-color: var(--accent-color);
+            color: var(--text-color);
+            border: none;
+            padding: 15px 30px;
+            font-size: 1.2rem;
+            cursor: pointer;
+            border-radius: 8px;
+            transition: background-color 0.2s, transform 0.2s;
+            min-width: 200px;
+        }
+
+        .ui-button:hover {
+            background-color: #a17fe0;
+            transform: scale(1.05);
+        }
+
+        .ui-button.small {
+            position: absolute;
+            top: 10px;
+            left: 10px;
+            min-width: auto;
+            padding: 8px 15px;
+            font-size: 0.9rem;
+        }
+
+        h1 {
+            margin-top: 0;
+        }
+
+        #skin-selection-container {
+            display: flex;
+            gap: 20px;
+            flex-wrap: wrap;
+            justify-content: center;
+            padding: 20px;
+        }
+
+        .skin-option {
+            width: 80px;
+            height: 80px;
+            border: 3px solid var(--primary-color);
+            border-radius: 10px;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .skin-option:hover {
+            border-color: var(--accent-color);
+            transform: scale(1.1);
+        }
+
+        .skin-option.selected {
+            border-color: #fff;
+            box-shadow: 0 0 15px #fff;
+        }
+
+        #hud {
+            background: none;
+            backdrop-filter: none;
+            pointer-events: none;
+            display: block; /* HUD is always "active" but transparent */
+        }
+
+        #hud > * {
+            pointer-events: all;
+        }
+
+        #collected-text {
+            position: absolute;
+            top: 15px;
+            right: 15px;
+            font-size: 1.5rem;
+            font-weight: bold;
+            color: white;
+            text-shadow: 2px 2px 4px #000;
+        }
+    </style>
+</head>
+<body>
+    <div id="game-container">
+        <canvas id="game-canvas"></canvas>
+        
+        <div id="ui-container">
+            <div id="main-menu" class="screen active">
+                <img src="logo.png" alt="Merp Logo" class="logo">
+                <div class="menu-buttons">
+                    <button id="play-button" class="ui-button">Play</button>
+                    <button id="skins-button" class="ui-button">Skins</button>
+                </div>
+            </div>
+
+            <div id="skins-screen" class="screen">
+                <h1>Skins</h1>
+                <div id="skin-selection-container">
+                    <!-- Skin options will be populated by JS -->
+                </div>
+                <button id="back-to-menu-button" class="ui-button">Back</button>
+            </div>
+
+            <div id="hud" class="screen">
+                 <div id="collected-text"></div>
+                 <button id="back-to-menu-from-game-button" class="ui-button small">Menu</button>
+            </div>
+        </div>
+    </div>
+    <script type="module">
+        // --- DATA ---
+
+        const SAVE_KEY = 'merpGameData';
+
+        const availableSkins = [
+            { id: 'default', name: 'Default Merp', color: '#8a63d2' },
+            { id: 'lime', name: 'Lime Merp', color: '#a3d937' },
+            { id: 'strawberry', name: 'Strawberry Merp', color: '#e54b4b' },
+            { id: 'ocean', name: 'Ocean Merp', color: '#37a1d9' },
+            { id: 'sunny', name: 'Sunny Merp', color: '#f7d85d' },
+        ];
+
+        const defaultData = {
+            playerSkin: availableSkins[0],
+            unlockedSkins: ['default'],
+            highScores: {},
+        };
+
+        function saveData(dataToSave) {
+            try {
+                const existingData = loadData();
+                const newData = { ...existingData, ...dataToSave };
+                localStorage.setItem(SAVE_KEY, JSON.stringify(newData));
+            } catch (error) {
+                console.error("Could not save data:", error);
+            }
+        }
+
+        function loadData() {
+            try {
+                const data = localStorage.getItem(SAVE_KEY);
+                if (data) {
+                    return JSON.parse(data);
+                }
+                return defaultData;
+            } catch (error) {
+                console.error("Could not load data, returning defaults:", error);
+                return defaultData;
+            }
+        }
+
+        // --- LEVELS ---
+
+        const levels = [
+            {
+                id: 1,
+                start: { x: 100, y: 450 },
+                platforms: [
+                    // Ground
+                    { x: 0, y: 550, width: 800, height: 50 },
+                    { x: 900, y: 550, width: 600, height: 50 },
+                    // Floating platforms
+                    { x: 300, y: 450, width: 150, height: 20 },
+                    { x: 550, y: 380, width: 150, height: 20 },
+                    { x: 300, y: 300, width: 100, height: 20 },
+                    { x: 800, y: 450, width: 100, height: 20 },
+                    { x: 1000, y: 450, width: 100, height: 20 },
+                    { x: 1200, y: 350, width: 100, height: 20 },
+                    { x: 1050, y: 250, width: 100, height: 20 },
+                ],
+                collectibles: [
+                    { x: 350, y: 420, radius: 10, collected: false },
+                    { x: 600, y: 350, radius: 10, collected: false },
+                    { x: 1250, y: 320, radius: 10, collected: false },
+                    { x: 1100, y: 220, radius: 10, collected: false },
+                ],
+                goal: { x: 1075, y: 200, width: 50, height: 50 },
+            }
+        ];
+
+
+        // --- CONTROLS ---
+
+        class Controls {
+            constructor() {
+                this.keys = {};
+                this.init();
+            }
+
+            init() {
+                document.addEventListener('keydown', (e) => {
+                    this.keys[e.key] = true;
+                });
+
+                document.addEventListener('keyup', (e) => {
+                    this.keys[e.key] = false;
+                });
+            }
+        }
+
+        // --- PLAYER ---
+
+        class Player {
+            constructor(game, skin) {
+                this.game = game;
+                this.baseWidth = 40;
+                this.baseHeight = 40;
+                this.width = this.baseWidth;
+                this.height = this.baseHeight;
+                this.x = 100;
+                this.y = 100;
+                this.vx = 0;
+                this.vy = 0;
+
+                // Physics constants
+                this.speed = 5;
+                this.friction = 0.85;
+                this.gravity = 0.5;
+                this.jumpStrength = -12;
+                this.maxFallSpeed = 15;
+
+                // State
+                this.onGround = false;
+
+                // Stretch/squash physics
+                this.squash = 1.0; // 1.0 is normal, < 1 is squashed vertically, > 1 is stretched
+                this.squashFactor = 0.15; // How much it squashes on impact
+                this.squashDamping = 0.9; // How fast it returns to normal
+
+                this.setSkin(skin);
+            }
+
+            setSkin(skin) {
+                this.color = skin.color;
+            }
+
+            draw(ctx) {
+                ctx.fillStyle = this.color;
+
+                let renderWidth = this.baseWidth / this.squash;
+                let renderHeight = this.baseHeight * this.squash;
+
+                ctx.beginPath();
+                ctx.ellipse(this.x + this.width / 2, this.y + this.height / 2, renderWidth / 2, renderHeight / 2, 0, 0, Math.PI * 2);
+                ctx.fill();
+            }
+
+            update(keys, platforms) {
+                // Horizontal movement
+                if (keys['ArrowLeft'] || keys['a']) {
+                    this.vx = -this.speed;
+                } else if (keys['ArrowRight'] || keys['d']) {
+                    this.vx = this.speed;
+                }
+                this.vx *= this.friction;
+
+                // Jumping
+                if ((keys['ArrowUp'] || keys['w'] || keys[' ']) && this.onGround) {
+                    this.vy = this.jumpStrength;
+                    this.onGround = false;
+                }
+
+                // Apply gravity
+                this.vy += this.gravity;
+                if (this.vy > this.maxFallSpeed) this.vy = this.maxFallSpeed;
+
+                // Move and handle collisions
+                this.x += this.vx;
+                this.handleCollisions('horizontal', platforms);
+
+                this.y += this.vy;
+                this.onGround = false;
+                this.handleCollisions('vertical', platforms);
+
+                // Update stretch/squash based on vertical velocity
+                this.updateSquash();
+            }
+
+            updateSquash() {
+                // Stretch while falling
+                let targetSquash = 1.0 - this.vy * 0.02;
+                targetSquash = Math.max(0.5, Math.min(1.5, targetSquash)); // Clamp the stretch
+
+                this.squash += (targetSquash - this.squash) * 0.2;
+
+                // Return to normal shape
+                this.squash += (1.0 - this.squash) * this.squashDamping;
+            }
+
+            handleCollisions(direction, platforms) {
+                platforms.forEach(platform => {
+                    // AABB collision detection
+                    if (this.x < platform.x + platform.width &&
+                        this.x + this.width > platform.x &&
+                        this.y < platform.y + platform.height &&
+                        this.y + this.height > platform.y) {
+
+                        if (direction === 'vertical') {
+                            if (this.vy > 0) { // Moving down
+                                // Landed on top of platform
+                                this.y = platform.y - this.height;
+                                if (this.vy > 1) { // Apply squash on impact
+                                    this.squash -= this.vy * this.squashFactor;
+                                }
+                                this.vy = 0;
+                                this.onGround = true;
+                            } else if (this.vy < 0) { // Moving up
+                                // Hit bottom of platform
+                                this.y = platform.y + platform.height;
+                                this.vy = 0;
+                            }
+                        }
+
+                        if (direction === 'horizontal') {
+                            if (this.vx > 0) { // Moving right
+                                this.x = platform.x - this.width;
+                            } else if (this.vx < 0) { // Moving left
+                                this.x = platform.x + platform.width;
+                            }
+                            this.vx = 0;
+                        }
+                    }
+                });
+            }
+        }
+
+        // --- GAME ---
+
+        class Game {
+            constructor(gameWidth, gameHeight, playerSkin) {
+                this.gameWidth = gameWidth;
+                this.gameHeight = gameHeight;
+                this.player = new Player(this, playerSkin);
+                this.controls = new Controls();
+                this.level = levels[0]; // Start with the first level
+                this.platforms = this.level.platforms;
+                this.collectibles = [...this.level.collectibles]; // Create a mutable copy
+                this.goal = this.level.goal;
+                this.collectedCount = 0;
+                this.camera = {
+                    x: 0,
+                    y: 0
+                };
+                this.onGoalReached = () => {}; // Callback for when goal is reached
+                this.reset();
+            }
+
+            reset() {
+                this.player.x = this.level.start.x;
+                this.player.y = this.level.start.y;
+                this.player.vx = 0;
+                this.player.vy = 0;
+                // Ensure we create a fresh copy of collectibles from the definition when resetting
+                this.collectibles = this.level.collectibles.map(c => ({...c, collected: false}));
+                this.collectedCount = 0;
+                
+                // Ensure HUD is updated upon reset
+                const collectedText = document.getElementById('collected-text');
+                if(collectedText) {
+                    collectedText.textContent = `Orbs: 0 / ${this.level.collectibles.length}`;
+                }
+            }
+
+            update() {
+                this.player.update(this.controls.keys, this.platforms);
+                this.updateCamera();
+                this.checkCollectibles();
+                this.checkGoal();
+            }
+            
+            checkCollectibles() {
+                const totalCollectibles = this.level.collectibles.length;
+                let itemsCollectedNow = totalCollectibles - this.collectibles.length; // Items already filtered out
+
+                // Check collisions against remaining collectibles
+                const remainingCollectibles = [];
+
+                this.collectibles.forEach(collectible => {
+                    const px = this.player.x + this.player.width / 2;
+                    const py = this.player.y + this.player.height / 2;
+                    const distToCenter = Math.hypot(px - collectible.x, py - collectible.y);
+
+                    if (distToCenter < this.player.baseWidth / 2 + collectible.radius) {
+                        itemsCollectedNow++;
+                    } else {
+                        remainingCollectibles.push(collectible);
+                    }
+                });
+                
+                this.collectibles = remainingCollectibles;
+
+                if (itemsCollectedNow !== this.collectedCount) {
+                    this.collectedCount = itemsCollectedNow;
+                    // Update HUD only if count changed
+                    const collectedText = document.getElementById('collected-text');
+                    if(collectedText) {
+                        collectedText.textContent = `Orbs: ${this.collectedCount} / ${totalCollectibles}`;
+                    }
+                }
+            }
+
+            checkGoal() {
+                if (this.collectedCount < this.level.collectibles.length) return; // Must collect all orbs
+
+                const goalRect = this.goal;
+                if (
+                    this.player.x < goalRect.x + goalRect.width &&
+                    this.player.x + this.player.width > goalRect.x &&
+                    this.player.y < goalRect.y + goalRect.height &&
+                    this.player.y + this.player.height > goalRect.y
+                ) {
+                    this.onGoalReached();
+                }
+            }
+
+            updateCamera() {
+                // Simple camera follow
+                this.camera.x = this.player.x - this.gameWidth / 2;
+                this.camera.y = this.player.y - this.gameHeight / 2;
+            }
+
+            draw(ctx) {
+                ctx.clearRect(0, 0, this.gameWidth, this.gameHeight);
+                ctx.save();
+                ctx.translate(-this.camera.x, -this.camera.y);
+
+                // Draw goal if all items are collected
+                if (this.collectedCount === this.level.collectibles.length) {
+                    ctx.fillStyle = 'gold';
+                    const g = this.goal;
+                    ctx.fillRect(g.x, g.y, g.width, g.height);
+                }
+
+                // Draw platforms
+                ctx.fillStyle = '#555';
+                this.platforms.forEach(p => {
+                    ctx.fillRect(p.x, p.y, p.width, p.height);
+                });
+
+                // Draw remaining collectibles
+                ctx.fillStyle = 'cyan';
+                this.collectibles.forEach(c => {
+                     ctx.beginPath();
+                     ctx.arc(c.x, c.y, c.radius, 0, Math.PI * 2);
+                     ctx.fill();
+                });
+
+
+                // Draw player
+                this.player.draw(ctx);
+
+                ctx.restore();
+            }
+        }
+
+        // --- MAIN INITIALIZATION & UI HANDLERS ---
+
+        const canvas = document.getElementById('game-canvas');
+        const ctx = canvas.getContext('2d');
+
+        const GAME_WIDTH = 800;
+        const GAME_HEIGHT = 600;
+
+        canvas.width = GAME_WIDTH;
+        canvas.height = GAME_HEIGHT;
+
+        let gameState = 'menu'; // 'menu', 'skins', 'playing'
+        let game;
+        let currentSkinId = loadData().playerSkin.id; // Load initial skin ID
+
+        function showScreen(screenId) {
+            document.querySelectorAll('.screen').forEach(screen => {
+                screen.classList.remove('active');
+            });
+            const activeScreen = document.getElementById(screenId);
+            if (activeScreen) {
+                activeScreen.classList.add('active');
+            }
+        }
+
+        function populateSkins() {
+            const container = document.getElementById('skin-selection-container');
+            container.innerHTML = '';
+            availableSkins.forEach(skin => {
+                const div = document.createElement('div');
+                div.className = 'skin-option';
+                if (skin.id === currentSkinId) {
+                    div.classList.add('selected');
+                }
+                div.style.backgroundColor = skin.color;
+                div.dataset.skinId = skin.id;
+
+                div.addEventListener('click', () => {
+                    currentSkinId = skin.id;
+                    const newSkin = availableSkins.find(s => s.id === currentSkinId);
+                    saveData({ playerSkin: newSkin });
+
+                    // Update selection visual
+                    container.querySelectorAll('.skin-option').forEach(el => el.classList.remove('selected'));
+                    div.classList.add('selected');
+                    
+                    // If the game is running, update the player skin immediately 
+                    if (game && gameState === 'playing') {
+                        game.player.setSkin(newSkin);
+                    }
+                });
+
+                container.appendChild(div);
+            });
+        }
+
+        function initUI(onPlay, onSkins, onBackToMenu) {
+            document.getElementById('play-button').addEventListener('click', onPlay);
+            document.getElementById('skins-button').addEventListener('click', () => {
+                populateSkins();
+                onSkins();
+            });
+            document.getElementById('back-to-menu-button').addEventListener('click', onBackToMenu);
+            document.getElementById('back-to-menu-from-game-button').addEventListener('click', onBackToMenu);
+
+            populateSkins();
+        }
+
+        function startGame() {
+            const savedData = loadData();
+            game = new Game(GAME_WIDTH, GAME_HEIGHT, savedData.playerSkin);
+            game.onGoalReached = () => {
+                console.log("Level Complete!");
+                // For now, reset the level and go back to the menu
+                game.reset(); 
+                setGameState('menu');
+            };
+            setGameState('playing');
+        }
+
+        function setGameState(newState) {
+            gameState = newState;
+            if (newState === 'menu') {
+                showScreen('main-menu');
+            } else if (newState === 'skins') {
+                showScreen('skins-screen');
+            } else if (newState === 'playing') {
+                showScreen('hud');
+            }
+        }
+
+        function gameLoop(timestamp) {
+            if (gameState === 'playing' && game) {
+                game.update();
+                game.draw(ctx);
+            }
+            requestAnimationFrame(gameLoop);
+        }
+
+        // Initialization
+
+        initUI(
+            startGame,
+            () => setGameState('skins'),
+            () => {
+                // When returning to menu, ensure HUD is hidden/game context is stopped
+                setGameState('menu');
+                if (game) {
+                   game.reset(); // Reset game state if user quit mid-level
+                }
+            }
+        );
+
+        // Initial state
+        setGameState('menu');
+        requestAnimationFrame(gameLoop);
+    </script>
+</body>
+</html>
