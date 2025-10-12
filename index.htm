@@ -1,0 +1,555 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>[Account Deleted] Studios - Unbound</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Special+Elite&display=swap');
+        
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            background: #0a0a0a;
+            color: #d4d4d4;
+            font-family: 'Special Elite', cursive;
+            overflow-x: hidden;
+            cursor: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20"><circle cx="10" cy="10" r="8" fill="rgba(255,255,255,0.3)"/></svg>'), auto;
+            user-select: none; /* prevent text selection */
+            -webkit-user-select: none;
+            -ms-user-select: none;
+        }
+        /* Hide visible scrollbars while preserving scrolling behavior */
+        html, body {
+            scrollbar-width: none; /* Firefox */
+            -ms-overflow-style: none; /* IE 10+ */
+        }
+        ::-webkit-scrollbar { display: none; } /* Chrome, Safari, Edge */
+        
+        #dust-canvas {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            z-index: 1000;
+        }
+        
+        .grain {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-image: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="300" height="300"><filter id="noise"><feTurbulence type="fractalNoise" baseFrequency="0.9" numOctaves="4" stitchTiles="stitch"/></filter><rect width="100%" height="100%" filter="url(%23noise)" opacity="0.05"/></svg>');
+            opacity: 0.5;
+            pointer-events: none;
+            z-index: 999;
+            animation: grain 0.2s steps(10) infinite;
+        }
+        
+        @keyframes grain {
+            0%, 100% { transform: translate(0, 0); }
+            10% { transform: translate(-5%, -5%); }
+            20% { transform: translate(-10%, 5%); }
+            30% { transform: translate(5%, -10%); }
+            40% { transform: translate(-5%, 15%); }
+            50% { transform: translate(-10%, 5%); }
+            60% { transform: translate(15%, 0); }
+            70% { transform: translate(0, 10%); }
+            80% { transform: translate(-15%, 0); }
+            90% { transform: translate(10%, 5%); }
+        }
+        
+        header {
+            text-align: center;
+            padding: 60px 20px 40px;
+            position: relative;
+        }
+        
+        .studio-name {
+            font-size: 3em;
+            letter-spacing: 8px;
+            text-transform: uppercase;
+            margin-bottom: 10px;
+            opacity: 0;
+            animation: fadeInChalk 2s forwards;
+            text-shadow: 2px 2px 8px rgba(0,0,0,0.8),
+                         0 0 20px rgba(255,255,255,0.1);
+            filter: blur(0.3px);
+            transition: color 0.3s, text-shadow 0.3s, filter 0.3s;
+        }
+
+        .studio-name:hover {
+            color: #fff;
+            text-shadow: 0 0 5px #fff, 0 0 10px rgba(255,255,255,0.3);
+            filter: blur(0);
+        }
+        
+        .tagline {
+            font-size: 1.2em;
+            color: #888;
+            opacity: 0;
+            animation: fadeInChalk 2s 0.5s forwards;
+            letter-spacing: 3px;
+        }
+        
+        @keyframes fadeInChalk {
+            0% {
+                opacity: 0;
+                transform: translateY(20px);
+                filter: blur(10px);
+            }
+            100% {
+                opacity: 1;
+                transform: translateY(0);
+                filter: blur(0.3px);
+            }
+        }
+        
+        .game-section {
+            max-width: 900px;
+            margin: 80px auto;
+            padding: 0 40px;
+            text-align: center;
+        }
+        
+        .game-title {
+            font-size: 5em;
+            letter-spacing: 15px;
+            margin-bottom: 30px;
+            position: relative;
+            display: inline-block;
+            opacity: 0;
+            animation: glitchIn 3s 1s forwards;
+            text-shadow: 3px 3px 0 rgba(255,255,255,0.1);
+            transition: color 0.3s, text-shadow 0.3s, filter 0.3s;
+        }
+
+        .game-title:hover {
+            color: #fff;
+            text-shadow: 0 0 8px #fff, 0 0 20px rgba(255,255,255,0.5);
+        }
+        
+        @keyframes glitchIn {
+            0% {
+                opacity: 0;
+                transform: translateX(-20px);
+                text-shadow: -5px 0 red, 5px 0 blue;
+            }
+            10% {
+                opacity: 0.5;
+                transform: translateX(10px);
+                text-shadow: 5px 0 red, -5px 0 blue;
+            }
+            20% {
+                opacity: 0.8;
+                transform: translateX(-5px);
+            }
+            30% {
+                opacity: 1;
+                text-shadow: 3px 3px 0 rgba(255,255,255,0.1);
+            }
+            100% {
+                opacity: 1;
+                transform: translateX(0);
+                text-shadow: 3px 3px 0 rgba(255,255,255,0.1);
+            }
+        }
+        
+        .status {
+            font-size: 1.3em;
+            color: #666;
+            margin-bottom: 40px;
+            letter-spacing: 4px;
+            opacity: 0;
+            animation: fadeInChalk 2s 1.5s forwards;
+        }
+        
+        .description {
+            font-size: 1.1em;
+            line-height: 2;
+            color: #999;
+            margin-bottom: 60px;
+            opacity: 0;
+            animation: fadeInChalk 2s 2s forwards;
+            letter-spacing: 2px;
+        }
+        
+        .team-section {
+            max-width: 1000px;
+            margin: 100px auto;
+            padding: 0 40px;
+        }
+        
+        .section-title {
+            font-size: 2.5em;
+            text-align: center;
+            margin-bottom: 60px;
+            letter-spacing: 8px;
+            opacity: 0;
+            animation: fadeInChalk 2s 2.5s forwards;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.8);
+            transition: color 0.3s, text-shadow 0.3s, filter 0.3s;
+        }
+
+        .section-title:hover {
+            color: #fff;
+            text-shadow: 0 0 5px #fff, 0 0 10px rgba(255,255,255,0.3);
+            filter: blur(0);
+        }
+        
+        .team-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 30px;
+            margin-bottom: 60px;
+        }
+        
+        .team-member {
+            padding: 30px;
+            border: 2px solid #333;
+            background: rgba(20, 20, 20, 0.5);
+            transition: all 0.3s ease, box-shadow 0.5s;
+            opacity: 0;
+            animation: fadeInChalk 1s forwards;
+            position: relative;
+            overflow: hidden;
+            
+            /* Chalk texture overlay simulation */
+            box-shadow: 0 0 5px rgba(255, 255, 255, 0.05) inset;
+        }
+        
+        .team-member:nth-child(1) { animation-delay: 3s; }
+        .team-member:nth-child(2) { animation-delay: 3.1s; }
+        .team-member:nth-child(3) { animation-delay: 3.2s; }
+        .team-member:nth-child(4) { animation-delay: 3.3s; }
+        .team-member:nth-child(5) { animation-delay: 3.4s; }
+        .team-member:nth-child(6) { animation-delay: 3.5s; }
+        .team-member:nth-child(7) { animation-delay: 3.6s; }
+        .team-member:nth-child(8) { animation-delay: 3.7s; }
+        .team-member:nth-child(9) { animation-delay: 3.8s; }
+        
+        .team-member::before {
+            content: '';
+            position: absolute;
+            top: -50%;
+            left: -50%;
+            width: 200%;
+            height: 200%;
+            background: radial-gradient(circle, rgba(255,255,255,0.03) 0%, transparent 70%);
+            opacity: 0;
+            transition: opacity 0.3s;
+        }
+        
+        .team-member:hover::before {
+            opacity: 1;
+        }
+        
+        .team-member:hover {
+            border-color: #555;
+            background: rgba(30, 30, 30, 0.7);
+            transform: translateY(-5px);
+            box-shadow: 0 0 15px rgba(255, 255, 255, 0.15),
+                        0 0 5px rgba(255, 255, 255, 0.05) inset;
+        }
+        
+        .member-name {
+            font-size: 1.3em;
+            letter-spacing: 3px;
+            color: #ccc;
+            word-break: break-word; /* allow long names to wrap */
+            white-space: normal;
+        }
+        
+        .creators {
+            text-align: center;
+            margin-top: 80px;
+            padding: 40px;
+            border-top: 2px solid #222;
+        }
+        
+        .creators-title {
+            font-size: 1.5em;
+            margin-bottom: 20px;
+            letter-spacing: 4px;
+            color: #888;
+        }
+        
+        .creator-names {
+            font-size: 1.2em;
+            letter-spacing: 3px;
+            color: #aaa;
+        }
+        
+        footer {
+            text-align: center;
+            padding: 60px 20px;
+            color: #555;
+            font-size: 0.9em;
+            letter-spacing: 2px;
+            border-top: 1px solid #1a1a1a;
+            margin-top: 100px;
+        }
+        
+        .merp-button {
+            position: fixed;
+            right: 16px;
+            bottom: 16px;
+            background: rgba(255,255,255,0.04);
+            color: #ddd;
+            border: 1px solid #333;
+            padding: 8px 12px;
+            font-family: 'Special Elite', cursive;
+            letter-spacing: 2px;
+            cursor: pointer;
+            z-index: 1100;
+            transition: transform 0.12s ease, background 0.12s;
+        }
+        .merp-button:active { transform: translateY(1px) scale(0.99); }
+        
+        .merp-bubble {
+            position: fixed;
+            right: 24px;
+            bottom: 64px;
+            background: rgba(0,0,0,0.8);
+            color: #e6e6e6;
+            padding: 12px 16px;
+            border: 1px dashed rgba(200,200,200,0.08);
+            font-size: 0.95em;
+            font-family: 'Special Elite', cursive;
+            letter-spacing: 2px;
+            pointer-events: none;
+            opacity: 0;
+            transform: translateY(8px) scale(0.98);
+            transition: opacity 260ms ease, transform 260ms ease;
+            z-index: 1100;
+            white-space: nowrap;
+            max-width: 260px; /* constrain bubble width so text doesn't overflow */
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+        .merp-bubble.show {
+            opacity: 1;
+            transform: translateY(0) scale(1);
+            box-shadow: 0 6px 20px rgba(0,0,0,0.6);
+            filter: blur(0.2px);
+        }
+        
+        @media (max-width: 768px) {
+            .studio-name {
+                font-size: 2em;
+                letter-spacing: 4px;
+            }
+            
+            .game-title {
+                font-size: 3em;
+                letter-spacing: 8px;
+            }
+            
+            .team-grid {
+                grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+                gap: 20px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Merp easter egg -->
+    <button class="merp-button" id="merpBtn">Merp</button>
+    <div class="merp-bubble" id="merpBubble">MERP — you found it.</div>
+    
+    <div class="grain"></div>
+    <canvas id="dust-canvas"></canvas>
+    
+    <header>
+        <h1 class="studio-name">[Account Deleted]</h1>
+        <p class="tagline">Studios</p>
+    </header>
+    
+    <section class="game-section">
+        <h2 class="game-title">UNBOUND</h2>
+        <p class="status">IN DEVELOPMENT</p>
+        <p class="description">
+            An asymmetric horror experience inspired by Forsaken.<br>
+            Face the unknown. Survive the nightmare.<br>
+            Or become part of it.
+        </p>
+    </section>
+    
+    <section class="team-section">
+        <h3 class="section-title">The Team</h3>
+        <div class="team-grid">
+            <div class="team-member">
+                <div class="member-name">Trey</div>
+            </div>
+            <div class="team-member">
+                <div class="member-name">Noobie</div>
+            </div>
+            <div class="team-member">
+                <div class="member-name">Cubey</div>
+            </div>
+            <div class="team-member">
+                <div class="member-name">Aaden</div>
+            </div>
+            <div class="team-member">
+                <div class="member-name">Aesthetic</div>
+            </div>
+            <div class="team-member">
+                <div class="member-name">Nerocitymapping7</div>
+            </div>
+            <div class="team-member">
+                <div class="member-name">unknown user</div>
+            </div>
+            <div class="team-member">
+                <div class="member-name">lori</div>
+            </div>
+            <div class="team-member">
+                <div class="member-name">mochi</div>
+            </div>
+        </div>
+        
+        <div class="creators">
+            <div class="creators-title">Created By</div>
+            <div class="creator-names">Mouse • Aesthetic • Noobie • Aaden</div>
+            <div style="margin-top:14px;">
+                <a href="https://discord.gg/3ZtdR2DcV4" target="_blank" rel="noopener" style="color:#ccc; text-decoration:underline; letter-spacing:2px; font-family:'Special Elite',cursive;">Join our Discord</a>
+            </div>
+        </div>
+    </section>
+    
+    <footer>
+        [Account Deleted] Studios © 2024<br>
+        Unbound - Coming Soon
+    </footer>
+    
+    <script>
+        // Shim to prevent unhandled exceptions from invalid selectors (e.g. extensions using selectors like [data.__smiley_orig_text])
+        (function(){
+            const origQSA = Document.prototype.querySelectorAll;
+            Document.prototype.querySelectorAll = function(selector){
+                try { return origQSA.call(this, selector); }
+                catch (e) {
+                    // If it's an invalid selector error, return an empty NodeList-like object to avoid breaking scripts.
+                    if (e instanceof DOMException) {
+                        return {
+                            length: 0,
+                            item: () => null,
+                            forEach: () => {},
+                            entries: () => ([])[Symbol.iterator]()
+                        };
+                    }
+                    throw e;
+                }
+            };
+        })();
+        
+        // Merp button behavior
+        (function(){
+            const btn = document.getElementById('merpBtn');
+            const bubble = document.getElementById('merpBubble');
+            let timeout;
+            btn.addEventListener('click', () => {
+                bubble.classList.add('show');
+                // quick chalky jitter
+                bubble.style.transform = 'translateY(0) scale(1.02)';
+                clearTimeout(timeout);
+                timeout = setTimeout(() => {
+                    bubble.classList.remove('show');
+                    bubble.style.transform = '';
+                }, 1800);
+            });
+        })();
+        
+        // Dust particles
+        const canvas = document.getElementById('dust-canvas');
+        const ctx = canvas.getContext('2d');
+        
+        canvas.width = window.innerWidth;
+        canvas.height = window.innerHeight;
+        
+        window.addEventListener('resize', () => {
+            canvas.width = window.innerWidth;
+            canvas.height = window.innerHeight;
+        });
+        
+        class Particle {
+            constructor() {
+                this.x = Math.random() * canvas.width;
+                this.y = Math.random() * canvas.height;
+                this.size = Math.random() * 2 + 0.5;
+                this.speedX = Math.random() * 0.5 - 0.25;
+                this.speedY = Math.random() * 0.3 + 0.1;
+                this.opacity = Math.random() * 0.3 + 0.1;
+            }
+            
+            update() {
+                this.x += this.speedX;
+                this.y += this.speedY;
+                
+                if (this.y > canvas.height) {
+                    this.y = 0;
+                    this.x = Math.random() * canvas.width;
+                }
+                
+                if (this.x > canvas.width) {
+                    this.x = 0;
+                } else if (this.x < 0) {
+                    this.x = canvas.width;
+                }
+            }
+            
+            draw() {
+                ctx.fillStyle = `rgba(200, 200, 200, ${this.opacity})`;
+                ctx.beginPath();
+                ctx.arc(this.x, this.y, this.size, 0, Math.PI * 2);
+                ctx.fill();
+            }
+        }
+        
+        const particles = [];
+        for (let i = 0; i < 100; i++) {
+            particles.push(new Particle());
+        }
+        
+        function animate() {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            
+            particles.forEach(particle => {
+                particle.update();
+                particle.draw();
+            });
+            
+            requestAnimationFrame(animate);
+        }
+        
+        animate();
+        
+        // Glitch effect on game title
+        const gameTitle = document.querySelector('.game-title');
+        setInterval(() => {
+            if (Math.random() > 0.95) {
+                gameTitle.style.textShadow = '-5px 0 red, 5px 0 blue';
+                setTimeout(() => {
+                    gameTitle.style.textShadow = '3px 3px 0 rgba(255,255,255,0.1)';
+                }, 100);
+            }
+        }, 2000);
+        
+        // Disable right-click context menu site-wide
+        document.addEventListener('contextmenu', function(e){
+            e.preventDefault();
+        }, {passive: false});
+        
+        // additionally prevent text selection via keyboard (shift+arrow, ctrl+a)
+        document.addEventListener('selectstart', function(e){
+            e.preventDefault();
+        }, {passive: false});
+    </script>
+</body>
+</html>
