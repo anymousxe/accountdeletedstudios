@@ -220,12 +220,14 @@
             animation: fadeInChalk 1s forwards;
             position: relative;
             overflow: hidden;
+            border-radius: 12px; /* Less blocky */
+            text-align: center; /* Center content */
             
             /* Chalk texture overlay simulation */
             box-shadow: 0 0 5px rgba(255, 255, 255, 0.05) inset;
         }
         
-        .team-member:nth-child(1) { animation-delay: 3s; }
+        .team-member:nth-child(1) { animation-delay: 3.0s; }
         .team-member:nth-child(2) { animation-delay: 3.1s; }
         .team-member:nth-child(3) { animation-delay: 3.2s; }
         .team-member:nth-child(4) { animation-delay: 3.3s; }
@@ -234,6 +236,7 @@
         .team-member:nth-child(7) { animation-delay: 3.6s; }
         .team-member:nth-child(8) { animation-delay: 3.7s; }
         .team-member:nth-child(9) { animation-delay: 3.8s; }
+        .team-member:nth-child(10) { animation-delay: 3.9s; }
         
         .team-member::before {
             content: '';
@@ -259,6 +262,33 @@
                         0 0 5px rgba(255, 255, 255, 0.05) inset;
         }
         
+        /* Special hover effects */
+        .team-member:nth-child(1):hover { box-shadow: 0 0 20px rgba(147, 112, 219, 0.6), 0 0 5px rgba(255,255,255,0.05) inset; } /* MediumPurple (Mouse) */
+        .team-member:nth-child(2):hover { box-shadow: 0 0 20px rgba(138, 43, 226, 0.6), 0 0 5px rgba(255,255,255,0.05) inset; } /* BlueViolet (Trey) */
+        .team-member:nth-child(3):hover { box-shadow: 0 0 20px rgba(0, 255, 255, 0.6), 0 0 5px rgba(255,255,255,0.05) inset; } /* Cyan (Noobie) */
+        .team-member:nth-child(4):hover { box-shadow: 0 0 20px rgba(255, 165, 0, 0.6), 0 0 5px rgba(255,255,255,0.05) inset; } /* Orange (Cubey) */
+        .team-member:nth-child(5):hover { box-shadow: 0 0 20px rgba(255, 20, 147, 0.6), 0 0 5px rgba(255,255,255,0.05) inset; } /* DeepPink (Aaden) */
+        .team-member:nth-child(6):hover { box-shadow: 0 0 20px rgba(50, 205, 50, 0.6), 0 0 5px rgba(255,255,255,0.05) inset; } /* LimeGreen (Aesthetic) */
+        .team-member:nth-child(7):hover { box-shadow: 0 0 20px rgba(255, 0, 0, 0.6), 0 0 5px rgba(255,255,255,0.05) inset; } /* Red (Nerocity) */
+        .team-member:nth-child(8):hover { box-shadow: 0 0 20px rgba(218, 165, 32, 0.6), 0 0 5px rgba(255,255,255,0.05) inset; } /* Goldenrod (Unknown User) */
+        .team-member:nth-child(9):hover { box-shadow: 0 0 20px rgba(75, 0, 130, 0.6), 0 0 5px rgba(255,255,255,0.05) inset; } /* Indigo (Lori) */
+        .team-member:nth-child(10):hover { box-shadow: 0 0 20px rgba(255, 105, 180, 0.6), 0 0 5px rgba(255,255,255,0.05) inset; } /* HotPink (Mochi) */
+        
+        .member-pfp {
+            width: 120px;
+            height: 120px;
+            border-radius: 50%;
+            object-fit: cover;
+            margin: 0 auto 20px;
+            border: 3px solid #444;
+            transition: transform 0.8s cubic-bezier(0.25, 1, 0.5, 1), border-color 0.3s;
+        }
+
+        .team-member:hover .member-pfp {
+            transform: rotate(360deg);
+            border-color: #888;
+        }
+
         .member-name {
             font-size: 1.3em;
             letter-spacing: 3px;
@@ -371,6 +401,14 @@
         <h1 class="studio-name">[Account Deleted]</h1>
         <p class="tagline">Studios</p>
     </header>
+
+    <div class="creators" aria-labelledby="foundedTitle">
+        <div id="foundedTitle" class="creators-title">Founded By</div>
+        <div class="creator-names">Mouse • Aesthetic • Noobie • Aaden</div>
+        <div style="margin-top:14px;">
+            <a href="https://discord.gg/3ZtdR2DcV4" target="_blank" rel="noopener" style="color:#ccc; text-decoration:underline; letter-spacing:2px; font-family:'Special Elite',cursive;">Join our Discord</a>
+        </div>
+    </div>
     
     <section class="game-section">
         <h2 class="game-title">UNBOUND</h2>
@@ -386,45 +424,50 @@
         <h3 class="section-title">The Team</h3>
         <div class="team-grid">
             <div class="team-member">
+                <img src="/anymouse cool pfp.png" alt="Mouse's profile picture" class="member-pfp">
+                <div class="member-name">Mouse</div>
+            </div>
+            <div class="team-member">
+                <img src="/treypfp.png" alt="Trey's profile picture" class="member-pfp">
                 <div class="member-name">Trey</div>
             </div>
             <div class="team-member">
+                <img src="/Noobie pfp.png" alt="Noobie's profile picture" class="member-pfp">
                 <div class="member-name">Noobie</div>
             </div>
             <div class="team-member">
+                <img src="/cubey.png" alt="Cubey's profile picture" class="member-pfp">
                 <div class="member-name">Cubey</div>
             </div>
             <div class="team-member">
+                <img src="/aadenpfpagain.png" alt="Aaden's profile picture" class="member-pfp">
                 <div class="member-name">Aaden</div>
             </div>
             <div class="team-member">
+                <img src="/aesthetic.png" alt="Aesthetic's profile picture" class="member-pfp">
                 <div class="member-name">Aesthetic</div>
             </div>
             <div class="team-member">
+                <img src="/nerocitypfp.jpg" alt="Nerocity's profile picture" class="member-pfp">
                 <div class="member-name">Nerocitymapping7</div>
             </div>
             <div class="team-member">
+                <img src="/Doakes.jpg" alt="unknown user's profile picture" class="member-pfp">
                 <div class="member-name">unknown user</div>
             </div>
             <div class="team-member">
+                <img src="/loripfp.png" alt="lori's profile picture" class="member-pfp">
                 <div class="member-name">lori</div>
             </div>
             <div class="team-member">
+                <img src="/mochipfp.png" alt="mochi's profile picture" class="member-pfp">
                 <div class="member-name">mochi</div>
-            </div>
-        </div>
-        
-        <div class="creators">
-            <div class="creators-title">Created By</div>
-            <div class="creator-names">Mouse • Aesthetic • Noobie • Aaden</div>
-            <div style="margin-top:14px;">
-                <a href="https://discord.gg/3ZtdR2DcV4" target="_blank" rel="noopener" style="color:#ccc; text-decoration:underline; letter-spacing:2px; font-family:'Special Elite',cursive;">Join our Discord</a>
             </div>
         </div>
     </section>
     
     <footer>
-        [Account Deleted] Studios © 2024<br>
+        [Account Deleted] Studios © 2025<br>
         Unbound - Coming Soon
     </footer>
     
