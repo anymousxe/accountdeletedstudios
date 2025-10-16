@@ -417,41 +417,6 @@
         
         body{ padding-top:38px; } /* push content beneath banner (36px height + 2px border) */
         
-        /* Hacked overlay */
-        #hackedOverlay{
-            position:fixed; inset:0; display:flex; align-items:center; justify-content:center; z-index:2000;
-            pointer-events:none; mix-blend-mode:screen; filter:url(#wavy); backdrop-filter: blur(2px) contrast(1.2) hue-rotate(30deg);
-        }
-        .hacked-text{
-            font-family: 'Special Elite', cursive; color:#ff2d95; font-size:clamp(28px,8vw,140px); letter-spacing:6px;
-            text-transform:uppercase; text-align:center; pointer-events:none;
-            text-shadow: 0 0 12px rgba(255,45,149,0.8), 0 0 40px rgba(0,255,255,0.12);
-            animation: hackedPulse 1.6s ease-in-out infinite, hackedGlitch 6s steps(8) infinite;
-        }
-        @keyframes hackedPulse{ 0%,100%{ transform:scale(1); } 50%{ transform:scale(1.04) rotate(-0.5deg); } }
-        @keyframes hackedGlitch{
-            0%{ text-shadow: 0 0 12px #ff2d95; transform:translateX(0); }
-            10%{ transform:translateX(-6px) skewX(-6deg); text-shadow: -6px 0 cyan; }
-            20%{ transform:translateX(6px) skewX(6deg); text-shadow: 6px 0 lime; }
-            100%{ transform:translateX(0); }
-        }
-        /* floating shards */
-        #floatingContainer{ position:fixed; inset:0; pointer-events:none; overflow:hidden; }
-        .floatItem{ position:absolute; width:18px; height:18px; border-radius:4px; background:linear-gradient(45deg,#ff2d95,#00fff0); opacity:0.85; mix-blend-mode:screen;
-            animation: floatMove linear infinite; transform-origin:center; filter:drop-shadow(0 6px 10px rgba(0,0,0,0.25));
-        }
-        @keyframes floatMove{
-            0%{ transform: translate(var(--sx), var(--sy)) scale(0.8) rotate(0deg); opacity:0.6; }
-            50%{ transform: translate(calc(var(--sx) + 60px), calc(var(--sy) - 120px)) scale(1.05) rotate(180deg); opacity:1; }
-            100%{ transform: translate(var(--ex), var(--ey)) scale(0.8) rotate(360deg); opacity:0.4; }
-        }
-        /* quick fullscreen static/scanline overlay */
-        #hackedOverlay::after{
-            content:''; position:fixed; inset:0; background-image:linear-gradient(rgba(255,255,255,0.02) 1px, transparent 1px); background-size:100% 3px; pointer-events:none;
-        }
-        /* subtle page tint when hacked */
-        body.hacked { filter: hue-rotate(20deg) saturate(1.2) blur(0.3px); }
-        
         @media (max-width: 768px) {
             .studio-name {
                 font-size: 2em;
@@ -473,11 +438,6 @@
 <body>
     <div class="host-banner" role="banner" aria-hidden="false">
         <div class="host-text">hosted by <span class="host-domain">aesth.lol</span></div>
-    </div>
-    <div id="hackedOverlay" aria-hidden="true">
-        <div class="hacked-text" role="img" aria-label="HAH I TRICKED YOU AADEN (WE WERENT HACKED)">HAH I TRICKED YOU AADEN (WE WERENT HACKED)</div>
-        <div id="floatingContainer" aria-hidden="true"></div>
-        <svg class="trippy-filter" width="0" height="0" aria-hidden="true"><filter id="wavy"><feTurbulence baseFrequency="0.02 0.03" numOctaves="3" seed="8"/><feDisplacementMap in="SourceGraphic" scale="30" /></filter></svg>
     </div>
     <!-- Merp easter egg -->
     <button class="merp-button" id="merpBtn">Merp</button>
@@ -684,40 +644,6 @@
         document.addEventListener('selectstart', function(e){
             e.preventDefault();
         }, {passive: false});
-        
-        // Hacked overlay behavior & floating elements
-        (function(){
-            const overlay = document.getElementById('hackedOverlay');
-            const floatContainer = document.getElementById('floatingContainer');
-            
-            // reveal overlay immediately (simulate hacked state)
-            setTimeout(()=>{ overlay.setAttribute('aria-hidden','false'); document.body.classList.add('hacked'); }, 400);
-            
-            // create floating items
-            const count = 28;
-            for(let i=0;i<count;i++){
-                const el = document.createElement('div');
-                el.className = 'floatItem';
-                const sx = Math.random()*100+'vw';
-                const sy = Math.random()*100+'vh';
-                const ex = Math.random()*100+'vw';
-                const ey = Math.random()*100+'vh';
-                el.style.setProperty('--sx', sx);
-                el.style.setProperty('--sy', sy);
-                el.style.setProperty('--ex', ex);
-                el.style.setProperty('--ey', ey);
-                el.style.left = sx;
-                el.style.top = sy;
-                el.style.animationDuration = (8 + Math.random()*10) + 's';
-                el.style.background = `linear-gradient(45deg, hsla(${Math.floor(Math.random()*360)} 100% 60% / 0.95), hsla(${Math.floor(Math.random()*360)} 100% 50% / 0.95))`;
-                floatContainer.appendChild(el);
-            }
-            
-            // keyboard toggle to remove overlay (Escape)
-            window.addEventListener('keydown', (e)=>{
-                if(e.key === 'Escape'){ overlay.setAttribute('aria-hidden','true'); document.body.classList.remove('hacked'); floatContainer.innerHTML=''; }
-            });
-        })();
     </script>
 </body>
 </html>
